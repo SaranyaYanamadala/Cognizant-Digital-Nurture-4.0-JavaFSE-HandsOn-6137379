@@ -1,0 +1,57 @@
+CREATE TABLE SAVINGS_ACCOUNTS (
+    ACCOUNT_ID NUMBER PRIMARY KEY,
+    CUST_ID    NUMBER,
+    CUST_NAME  VARCHAR2(40),
+    BALANCE    NUMBER(10, 2)
+);
+
+-- Inserting data into savings account
+INSERT INTO SAVINGS_ACCOUNTS VALUES ( 1001,
+                                      1,
+                                      'Alice',
+                                      10000.00 );
+
+INSERT INTO SAVINGS_ACCOUNTS VALUES ( 1002,
+                                      2,
+                                      'Bob',
+                                      7500.00 );
+
+INSERT INTO SAVINGS_ACCOUNTS VALUES ( 1003,
+                                      3,
+                                      'Charlie',
+                                      12000.50 );
+
+INSERT INTO SAVINGS_ACCOUNTS VALUES ( 1004,
+                                      4,
+                                      'Diya',
+                                      5000.00 );
+
+INSERT INTO SAVINGS_ACCOUNTS VALUES ( 1005,
+                                      5,
+                                      'Emma',
+                                      15500.75 );
+
+SELECT
+    *
+FROM
+    SAVINGS_ACCOUNTS;
+
+-- Scenario 1
+CREATE OR REPLACE PROCEDURE PROCESSMONTHLYINTEREST IS
+BEGIN
+    -- updating all the savings accounts with 1% ROI
+    UPDATE SAVINGS_ACCOUNTS
+    SET
+        BALANCE = BALANCE + ( BALANCE * 0.01 );
+
+    COMMIT;
+END;
+
+BEGIN
+    PROCESSMONTHLYINTEREST;
+END;
+
+SELECT
+    *
+FROM
+    SAVINGS_ACCOUNTS;
