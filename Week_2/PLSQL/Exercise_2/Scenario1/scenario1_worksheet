@@ -1,0 +1,60 @@
+-- Scenario 1
+CREATE OR REPLACE PROCEDURE SafeTransferFunds (
+    src_account  IN NUMBER,
+    target_account IN NUMBER,
+    amount IN NUMBER
+) IS 
+    src_balance NUMBER;
+    acc_holder NUMBER;
+BEGIN
+    -- checking if both accounts exists
+    BEGIN
+        SELECT 1 INTO acc_holder FROM Bank_accounts  WHERE acc_id = src_account;
+    EXCEPTION 
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Source account does not exist.');
+    END;
+
+    -- checking for target account
+    BEGIN
+        SELECT 1 INTO acc_holder FROM Bank_accounts  WHERE acc_id = target_account;
+    EXCEPTION 
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Target account does not exist.');
+    END;
+
+    -- Get source balance
+    SELECT balance INTO src_balance 
+    FROM Bank_accounts 
+    WHERE acc_id = src_account;
+
+    -- Check for sufficient balance
+    IF src_balance < amount THEN 
+        RAISE_APPLICATION_ERROR(-20012, 'Insufficient balance.');
+    END IF;
+
+
+    -- Transfer
+    UPDATE Bank_accounts 
+    SET balance = balance - amount
+    WHERE acc_id = src_account;
+
+    UPDATE Bank_accounts 
+    SET balance = balance + amount
+    WHERE acc_id = target_account;
+
+    DBMS_OUTPUT.PUT_LINE(amount || 'transferred from account ' || src_account || ' to account ' || target_account);
+
+    COMMIT;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Transfer Denied : ' || SQLERRM);
+END;
+/
+
+-- Execute the procedure
+BEGIN
+    SafeTransferFunds(101, 102, 2000);
+END;

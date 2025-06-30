@@ -1,0 +1,23 @@
+-- Scenario 1
+ALTER TABLE Customers ADD last_modified DATE;
+
+-- Initializing already existing rows with current date
+UPDATE Customers SET last_modified = SYSDATE;
+COMMIT;
+
+-- Defining the Trigger
+CREATE OR REPLACE TRIGGER UpdateCustomerLastModified
+BEFORE UPDATE ON Customers
+FOR EACH ROW
+BEGIN
+    :NEW.last_modified := SYSDATE;
+END;
+/
+
+-- Executing the trigger
+UPDATE Customers 
+SET balance_in_$ = balance_in_$ + 1000
+WHERE cust_id = 10;
+
+-- verifying the change
+SELECT * FROM Customers;

@@ -1,0 +1,55 @@
+-- Scenario 1
+ALTER TABLE Customers ADD dob DATE;
+
+-- clearing old data and starting fresh
+DELETE FROM Customers;
+COMMIT;
+
+-- Updating the DOB
+UPDATE customers
+SET dob = TO_DATE('1985-06-15', 'YYYY-MM-DD')
+WHERE cust_id = 1;
+
+UPDATE customers
+SET dob = TO_DATE('1990-02-20', 'YYYY-MM-DD')
+WHERE cust_id = 2;
+
+UPDATE customers
+SET dob = TO_DATE('2001-12-05', 'YYYY-MM-DD')
+WHERE cust_id = 3;
+
+UPDATE customers
+SET dob = TO_DATE('1960-08-30', 'YYYY-MM-DD')
+WHERE cust_id = 4;
+
+UPDATE customers
+SET dob = TO_DATE('1962-06-10', 'YYYY-MM-DD')
+WHERE cust_id = 5;
+
+UPDATE customers
+SET dob = TO_DATE('1960-12-16', 'YYYY-MM-DD')
+WHERE cust_id = 10;
+
+COMMIT;
+
+
+
+-- Function
+CREATE OR REPLACE FUNCTION CalculateAge (
+    cust_dob IN DATE
+) RETURN NUMBER IS cust_age NUMBER;
+BEGIN 
+    -- Calculating age using months_between
+    cust_age := FLOOR(MONTHS_BETWEEN(SYSDATE, cust_dob) / 12);
+    RETURN cust_age;
+END;
+/
+
+-- Executing the function
+SELECT cust_id, name, CalculateAge(dob) AS age FROM Customers;
+
+-- Updating changes
+UPDATE Customers 
+SET age = CalculateAge(dob);
+COMMIT;
+

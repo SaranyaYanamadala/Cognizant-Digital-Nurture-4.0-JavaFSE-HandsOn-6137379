@@ -1,0 +1,36 @@
+SET SERVEROUTPUT ON;
+
+DECLARE
+    -- Set the annual fee amount
+    annual_fee CONSTANT NUMBER := 200;
+
+    -- Cursor to fetch all savings accounts
+    CURSOR acc_cursor IS
+        SELECT account_id, balance FROM Savings_Accounts;
+
+    -- Cursor row variable
+    acc_record acc_cursor%ROWTYPE;
+BEGIN
+    OPEN acc_cursor;
+
+    LOOP
+        FETCH acc_cursor INTO acc_record;
+        EXIT WHEN acc_cursor%NOTFOUND;
+
+        -- Deducting the annual fee
+        UPDATE Savings_Accounts
+        SET balance = balance - annual_fee
+        WHERE account_id = acc_record.account_id;
+
+        -- Optional: print confirmation
+        DBMS_OUTPUT.PUT_LINE(
+            'Annual fee applied to Account ID: ' || acc_record.account_id ||
+            ' | New Balance: ' || TO_CHAR(acc_record.balance - annual_fee, '99999.99')
+        );
+    END LOOP;
+
+    CLOSE acc_cursor;
+
+    COMMIT; -- commit the changes
+END;
+/

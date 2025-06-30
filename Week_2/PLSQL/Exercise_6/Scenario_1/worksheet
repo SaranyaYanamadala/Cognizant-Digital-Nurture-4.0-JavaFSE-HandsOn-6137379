@@ -1,0 +1,36 @@
+SET SERVEROUTPUT ON;
+
+DECLARE
+    -- Defining the cursor to fetch this month's transaction
+    CURSOR transaction_cursor IS
+    SELECT sa.cust_id, t.account_id, t.transaction_type, t.amount, t.transaction_date
+    FROM Transactions t
+    JOIN Savings_Accounts sa ON t.account_id = sa.account_id
+    WHERE TRUNC(t.transaction_date, 'MM') = TRUNC(SYSDATE, 'MM')
+    ORDER BY sa.cust_id, t.account_id, t.transaction_date;
+
+    -- Cursor row variable
+    txn_record transaction_cursor%ROWTYPE;
+
+BEGIN 
+    OPEN transaction_cursor;
+
+    DBMS_OUTPUT.PUT_LINE('Monthly Customer Statements: ');
+    DBMS_OUTPUT.PUT_LINE('------------------------------------------');
+
+    LOOP
+        FETCH transaction_cursor INTO txn_record;
+        EXIT WHEN transaction_cursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(
+            'Customer ID : ' || txn_record.cust_id ||
+            ', Account ID : ' || txn_record.account_id ||
+            ', Type : ' || txn_record.transaction_type ||
+            ', Amount : ' || txn_record.amount ||
+            ', Date : ' || TO_CHAR(txn_record.transaction_date, 'YYYY_MM_DD')
+        );
+    END LOOP;
+
+    CLOSE transaction_cursor;
+END;
+/
