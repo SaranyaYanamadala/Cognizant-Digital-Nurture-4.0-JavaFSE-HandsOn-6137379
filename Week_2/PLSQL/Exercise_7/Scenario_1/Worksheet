@@ -1,0 +1,100 @@
+-- Scenario 1
+CREATE OR REPLACE PACKAGE CustomerManagement AS 
+    PROCEDURE AddCustomer(
+        target_cust_id IN NUMBER,
+        cust_name IN VARCHAR2,
+        cust_age IN NUMBER,
+        cust_balance IN NUMBER,
+        cust_dob IN DATE
+    );
+
+    PROCEDURE UpdateCustomer(
+        target_cust_id IN NUMBER,
+        cust_name IN VARCHAR2,
+        cust_age IN NUMBER
+    );
+
+    FUNCTION GetCustomerBalance(
+        target_cust_id IN NUMBER
+    ) RETURN NUMBER;
+END CustomerManagement;
+/
+
+CREATE OR REPLACE PACKAGE BODY CustomerManagement AS
+    PROCEDURE AddCustomer (
+        target_cust_id IN NUMBER,
+        cust_name IN VARCHAR2,
+        cust_age IN NUMBER,
+        cust_balance IN NUMBER,
+        cust_dob IN DATE
+    ) IS
+    BEGIN
+        INSERT INTO Customers(cust_id, name, age, balance_in_$, dob)
+        VALUES(target_cust_id, cust_name, cust_age, cust_balance, cust_dob);
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            DBMS_OUTPUT.PUT_LINE('Customer with ID : ' || target_cust_id || ' already exists.');
+    END AddCustomer;
+
+
+
+    PROCEDURE UpdateCustomer(
+        target_cust_id IN NUMBER,
+        cust_name IN VARCHAR2,
+        cust_age IN NUMBER
+    ) IS
+    BEGIN
+        UPDATE Customers
+        SET name = cust_name, age = cust_age
+        WHERE cust_id = target_cust_id;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Customer ID ' || target_cust_id || ' not found.');
+        END IF;
+    END UpdateCustomer;
+
+
+
+    FUNCTION GetCustomerBalance (
+        target_cust_id IN NUMBER
+    ) RETURN NUMBER IS
+        cust_balance NUMBER;
+    BEGIN
+        SELECT balance_in_$ INTO cust_balance
+        FROM Customers
+        WHERE cust_id = target_cust_id;
+        RETURN cust_balance;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Customer ID ' || target_cust_id || ' not found.');
+            RETURN NULL;
+    END GetCustomerBalance;
+
+END CustomerManagement;
+/
+
+-- Executing the contents of backage
+
+-- Adding a customer
+BEGIN
+    CustomerManagement.AddCustomer(16, 'Arjun', 25, 10000, TO_DATE('2001-05-16', 'YYYY-MM-DD'));
+END;
+/
+
+-- Updating a customer
+BEGIN
+    CustomerManagement.UpdateCustomer(10, 'Rahul', 25);
+END;
+/
+
+-- Getting customer balance
+DECLARE
+    v_balance NUMBER;
+BEGIN
+    v_balance := CustomerManagement.GetCustomerBalance(16);
+    DBMS_OUTPUT.PUT_LINE('Balance for customer 201: ' || v_balance);
+END;
+/
+
+
+SELECT * FROM Customers;

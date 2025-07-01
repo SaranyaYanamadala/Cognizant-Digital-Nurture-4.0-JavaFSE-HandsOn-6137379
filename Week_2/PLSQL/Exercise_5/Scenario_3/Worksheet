@@ -1,0 +1,46 @@
+CREATE OR REPLACE TRIGGER CheckTransactionRules
+BEFORE INSERT ON Transactions 
+FOR EACH ROW
+DECLARE
+    customer_balance NUMBER;
+BEGIN 
+    -- Get the current balance of the account
+    SELECT balance INTO customer_balance
+    FROM Bank_Accounts 
+    WHERE acc_id = :NEW.account_id;
+
+    -- withdrawals should not exceed balance
+    IF UPPER(:NEW.transaction_type) = 'WITHDRAWAL' THEN
+        IF :NEW.amount > customer_balance THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insufficient balance');
+        ELSIF :NEW.amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Withdrawal amount must be valid(> 0)');
+        END IF;
+
+    -- Deposits must be positive
+    ELSIF UPPER(:NEW.transaction_type) = 'DEPOSIT' THEN
+        IF :NEW.amount <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20003, 'Deposit amount should be positive');
+        END IF;
+    
+    ELSE
+        RAISE_APPLICATION_ERROR(-20004, 'Invalid Transaction type');
+    END IF;
+END;
+/
+
+
+-- Executing the trigger
+SELECT * FROM TRANSACTIONS;
+
+-- Valid deposit
+INSERT INTO Transactions (transaction_id, account_id, transaction_type, amount)
+VALUES (3, 103, 'Deposit', 20000);
+
+-- Invalid withdrawal
+INSERT INTO Transactions (transaction_id, account_id, transaction_type, amount)
+VALUES (4, 102, 'Withdrawal', 7000);
+
+-- Negative deposit
+INSERT INTO Transactions (transaction_id, account_id, transaction_type, amount)
+VALUES (3, 101, 'Deposit', -100);

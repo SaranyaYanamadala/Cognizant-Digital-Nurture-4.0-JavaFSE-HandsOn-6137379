@@ -1,0 +1,96 @@
+DESCRIBE Bank_Accounts;
+
+
+-- Package Specification
+CREATE OR REPLACE PACKAGE AccountOperations AS 
+    PROCEDURE OpenAccount (
+        account_id IN NUMBER,
+        customer_id IN NUMBER,
+        account_holder IN VARCHAR2,
+        customer_balance IN NUMBER,
+        isactive IN CHAR DEFAULT 'Y'
+    );
+
+    PROCEDURE CloseAccount (
+        account_id IN NUMBER
+    );
+
+    FUNCTION GetTotalBalance (
+        customer_id IN NUMBER
+    ) RETURN NUMBER;
+END AccountOperations;
+/
+
+-- Package Body
+CREATE OR REPLACE PACKAGE BODY AccountOperations AS
+    PROCEDURE OpenAccount(
+        account_id IN NUMBER,
+        customer_id IN NUMBER,
+        account_holder IN VARCHAR2,
+        customer_balance IN NUMBER,
+        isactive IN CHAR
+    ) IS 
+    BEGIN
+        INSERT INTO Bank_Accounts(acc_id, cust_id, acc_holder, balance, is_active)
+        VALUES(account_id, customer_id, account_holder, customer_balance, isactive);
+
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            DBMS_OUTPUT.PUT_LINE('Account ID ' || account_id || ' already exists.');
+    END OpenAccount;
+
+
+    PROCEDURE CloseAccount(
+        account_id IN NUMBER
+    ) IS
+    BEGIN
+        UPDATE Bank_Accounts 
+        SET is_active = 'N'
+        WHERE acc_id = account_id;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Account not found.');
+        END IF;
+    END CloseAccount;
+
+    FUNCTION GetTotalBalance(
+        customer_id IN NUMBER
+    ) RETURN NUMBER IS
+        total_balance NUMBER;
+    BEGIN 
+        SELECT NVL(SUM(balance), 0)
+        INTO total_balance
+        FROM Bank_Accounts 
+        WHERE cust_id = customer_id AND is_active = 'Y';
+
+        RETURN total_balance;
+    END GetTotalBalance;
+END AccountOperations;
+/
+
+
+-- Testing the package
+SELECT * FROM Bank_Accounts;
+
+-- Opening an account
+BEGIN
+    AccountOperations.OpenAccount(201, 6, 'Amrutha', 5000);
+END;
+/
+
+
+-- Closing an account
+BEGIN
+    AccountOperations.CloseAccount(105);
+END;
+/
+
+
+-- Getting the balance
+DECLARE
+    total_balance NUMBER;
+BEGIN
+    total_balance := AccountOperations.GetTotalBalance(1);
+    DBMS_OUTPUT.PUT_LINE('Total Balance ' || total_balance);
+END;
+/

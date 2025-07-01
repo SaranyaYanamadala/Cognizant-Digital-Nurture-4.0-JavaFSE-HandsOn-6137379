@@ -1,0 +1,95 @@
+-- Package Specification
+CREATE OR REPLACE PACKAGE EmployeeManagement AS 
+    PROCEDURE HireEmployee (
+        employee_id IN NUMBER,
+        employee_name IN VARCHAR2,
+        employee_dept IN VARCHAR2,
+        employee_salary IN NUMBER
+    );
+
+    PROCEDURE UpdateEmployeeDetails(
+        employee_id IN NUMBER,
+        employee_name IN VARCHAR2,
+        employee_dept IN VARCHAR2
+    );
+
+    FUNCTION GetAnnualSalary (
+        employee_id IN NUMBER
+    ) RETURN NUMBER;
+END EmployeeManagement;
+/
+
+
+-- Package Body
+CREATE OR REPLACE PACKAGE BODY EmployeeManagement AS
+    PROCEDURE HireEmployee (
+        employee_id IN NUMBER,
+        employee_name IN VARCHAR2,
+        employee_dept IN VARCHAR2,
+        employee_salary IN NUMBER
+    ) IS 
+    BEGIN
+        INSERT INTO Employees(emp_id, emp_name, department, salary) 
+        VALUES(employee_id, employee_name, employee_dept, employee_salary);
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            DBMS_OUTPUT.PUT_LINE('Employee with ID ' || employee_id || ' already exists.');
+    END HireEmployee;
+
+    PROCEDURE UpdateEmployeeDetails (
+        employee_id IN NUMBER,
+        employee_name IN VARCHAR2,
+        employee_dept IN VARCHAR2
+    ) IS 
+    BEGIN
+        UPDATE Employees 
+        SET emp_name = employee_name, department = employee_dept
+        WHERE emp_id = employee_id;
+    
+        IF SQL%ROWCOUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('No employeefound with ID ' || employee_id);
+        END IF;
+    END UpdateEmployeeDetails;
+
+    FUNCTION GetAnnualSalary (
+        employee_id IN NUMBER
+    ) RETURN NUMBER IS
+        monthly_salary NUMBER;
+    BEGIN
+        SELECT salary INTO monthly_salary
+        FROM Employees 
+        WHERE emp_id = employee_id;
+
+        RETURN monthly_salary * 12;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Employee not found.');
+        RETURN NULL;
+    END GetAnnualSalary;
+
+END EmployeeManagement;
+/
+
+-- Testing the package
+SELECT * FROM Employees;
+
+-- Hiring a new employee
+BEGIN
+    EmployeeManagement.HireEmployee(7, 'Neha', 'HR', 50000);
+END;
+/
+
+-- Updating an existing employee
+BEGIN
+    EmployeeManagement.UpdateEmployeeDetails(6, 'Neha S. Sharma', 'HR');
+END;
+/
+
+-- Getting the annual salary
+DECLARE
+    annual_salary NUMBER;
+BEGIN
+    annual_salary := EmployeeManagement.GetAnnualSalary(5);
+    DBMS_OUTPUT.PUT_LINE('Annual Salary: ' || annual_salary);
+END;
+/
