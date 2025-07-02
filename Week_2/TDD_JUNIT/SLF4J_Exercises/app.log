@@ -1,0 +1,4 @@
+21:19:34.751 [main] INFO  com.example.App - Application started.
+21:19:34.751 [main] DEBUG com.example.App - Debugging information.
+21:19:34.751 [main] WARN  com.example.App - This is a warning.
+21:19:34.751 [main] ERROR com.example.App - This is an error message.
