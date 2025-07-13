@@ -11,7 +11,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        // In-memory users
         auth.inMemoryAuthentication()
             .withUser("user").password("{noop}pwd").roles("USER")
             .and()
@@ -26,7 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/authenticate").hasAnyRole("USER", "ADMIN")
             .anyRequest().authenticated()
             .and()
-            .httpBasic(); // Enable Basic Auth
+            .httpBasic();
     }
 }
 
