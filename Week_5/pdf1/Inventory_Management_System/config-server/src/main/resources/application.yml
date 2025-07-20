@@ -1,0 +1,22 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: D:\Cognizant Exercises\completedExercises\Cognizant-Digital-Nurture-4.0-JavaFSE-HandsOn-6137379\Week_5\pdf1\Inventory_Management_System\config-repo
+          #uri: file:///${user.dir}/../config-repo
+          # Or, if you prefer an absolute path:
+          # uri: file:///C:/path/to/your/github-repo/config-repo
+          # For a remote Git repository, use: https://github.com/your-username/your-config-repo.git
+          # For private repos, add username/password if needed.
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
