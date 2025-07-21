@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: gateway-service # Name of the application for Config Server and Eureka
+  cloud:
+    config:
+      uri: http://localhost:8888 # URL of the Config Server
+      fail-fast: true # Fail fast if Config Server is not available
