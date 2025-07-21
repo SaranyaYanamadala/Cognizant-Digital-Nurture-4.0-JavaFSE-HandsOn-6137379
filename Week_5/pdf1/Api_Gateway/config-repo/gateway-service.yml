@@ -1,0 +1,52 @@
+server:
+  port: 8080 # Default port for API Gateway
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Enable discovery service integration
+          lower-case-service-id: true # Use lowercase service IDs for routing
+      routes:
+        # Route to Customer Service
+        - id: customer_service_route
+          uri: lb://CUSTOMER-SERVICE # Use Eureka for load balancing
+          predicates:
+            - Path=/api/customers/** # Matches requests starting with /api/customers/
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment} # Rewrites /api/customers/info to /customers/info
+            - name: RequestRateLimiter # Apply rate limiting
+              args:
+                # Key Resolver: Based on user's IP address
+                key-resolver: '#{@ipAddressKeyResolver}'
+                redis-rate-limiter.replenishRate: 10 # 10 requests per second
+                redis-rate-limiter.burstCapacity: 20 # Max burst of 20 requests
+                redis-rate-limiter.requestedTokens: 1 # Each request consumes 1 token
+
+        # Route to Billing Service
+        - id: billing_service_route
+          uri: lb://BILLING-SERVICE
+          predicates:
+            - Path=/api/bills/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+            - name: RequestRateLimiter
+              args:
+                key-resolver: '#{@ipAddressKeyResolver}'
+                redis-rate-limiter.replenishRate: 5 # 5 requests per second
+                redis-rate-limiter.burstCapacity: 10 # Max burst of 10 requests
+                redis-rate-limiter.requestedTokens: 1
+
+# Rate Limiter Configuration - requires Redis
+spring:
+  redis:
+    host: localhost
+    port: 6379 # Default Redis port. Make sure Redis is running.
+
+# Actuator endpoints for monitoring (optional but good for debugging rate limiting)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # Expose all actuator endpoints
